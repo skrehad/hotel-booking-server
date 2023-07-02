@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 // var jwt = require("jsonwebtoken");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
 app.use(cors());
@@ -24,6 +24,11 @@ async function run() {
       .db("hotel-booking")
       .collection("blogCollection");
 
+    const userCollection = client
+      .db("hotel-booking")
+      .collection("userCollection");
+
+    // blog collection
     app.get("/blog", async (req, res) => {
       const query = {};
       const users = await blogCollection.find(query).toArray();
@@ -33,6 +38,42 @@ async function run() {
     app.post("/blog", async (req, res) => {
       const user = req.body;
       const result = await blogCollection.insertOne(user);
+      res.send(result);
+    });
+
+    //all user collection
+    app.get("/users", async (req, res) => {
+      const query = {};
+      const users = await userCollection.find(query).toArray();
+      res.send(users);
+    });
+
+    // user collect from client site
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const query = {
+        email: user.email,
+      };
+      const alreadyLogin = await userCollection.find(query).toArray();
+      if (alreadyLogin.length > 0 && alreadyLogin[0].email === user.email) {
+        return res.send({ acknowledged: false });
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+    //for single user collection
+    app.get("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const user = await userCollection.findOne(query);
+      res.send(user);
+    });
+
+    //delete single user collection
+    app.delete("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await userCollection.deleteOne(filter);
       res.send(result);
     });
   } finally {
