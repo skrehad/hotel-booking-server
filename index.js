@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
-// var jwt = require("jsonwebtoken");
+var jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
@@ -18,8 +18,29 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
+// jwt token functionality
+// function verifyJWT(req, res, next) {
+//   const authHeader = req.headers.authorization;
+//   if (!authHeader) {
+//     return res.status(401).send("unauthorized access");
+//   }
+//   const token = authHeader.split(" ")[1];
+
+//   jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+//     if (err) {
+//       return res.status(403).send({ message: "forbidden access" });
+//     }
+//     req.decoded = decoded;
+//     next();
+//   });
+// }
+
 async function run() {
   try {
+    const hotelCollection = client
+      .db("hotel-booking")
+      .collection("hotelCollection");
     const blogCollection = client
       .db("hotel-booking")
       .collection("blogCollection");
@@ -27,6 +48,32 @@ async function run() {
     const userCollection = client
       .db("hotel-booking")
       .collection("userCollection");
+
+    // verify admin for access another user to admit admin
+    // const verifyAdmin = async (req, res, next) => {
+    //   const decodedEmail = req.decoded.email;
+    //   const query = { email: decodedEmail };
+    //   console.log(decodedEmail);
+    //   const user = await userCollection.findOne(query);
+
+    //   if (user?.role !== "admin") {
+    //     return res.status(403).send({ message: "forbidden access" });
+    //   }
+    //   next();
+    // };
+
+    // hotels collection
+    app.get("/hotels", async (req, res) => {
+      const query = {};
+      const users = await hotelCollection.find(query).toArray();
+      res.send(users);
+    });
+
+    app.post("/hotels", async (req, res) => {
+      const user = req.body;
+      const result = await hotelCollection.insertOne(user);
+      res.send(result);
+    });
 
     // blog collection
     app.get("/blog", async (req, res) => {
@@ -69,6 +116,18 @@ async function run() {
       res.send(user);
     });
 
+    // for get jwt token
+    app.get("/jwt", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      if (user) {
+        const token = jwt.sign({ email }, process.env.ACCESS_TOKEN);
+        return res.send({ accessToken: token });
+      }
+      res.status(403).send({ accessToken: "" });
+    });
+
     //delete single user collection
     app.delete("/users/:id", async (req, res) => {
       const id = req.params.id;
@@ -91,7 +150,7 @@ async function run() {
       res.send(result);
     });
 
-    // for check admin
+    // for check admin email
     app.get("/users/admin/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email };
