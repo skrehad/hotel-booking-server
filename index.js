@@ -68,20 +68,35 @@ async function run() {
       const users = await hotelCollection.find(query).toArray();
       res.send(users);
     });
-
+    // hotel collection for post in the client site
     app.post("/hotels", async (req, res) => {
       const user = req.body;
       const result = await hotelCollection.insertOne(user);
       res.send(result);
     });
+    //for single hotel collection
+    app.get("/hotels/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const user = await hotelCollection.findOne(query);
+      res.send(user);
+    });
+    //delete single user collection
+    app.delete("/hotels/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await hotelCollection.deleteOne(filter);
+      res.send(result);
+    });
 
-    // blog collection
+    // blog collection for get
     app.get("/blog", async (req, res) => {
       const query = {};
       const users = await blogCollection.find(query).toArray();
       res.send(users);
     });
 
+    // blog collection for post in the client site
     app.post("/blog", async (req, res) => {
       const user = req.body;
       const result = await blogCollection.insertOne(user);
@@ -115,6 +130,13 @@ async function run() {
       const user = await userCollection.findOne(query);
       res.send(user);
     });
+    //delete single user collection
+    app.delete("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await userCollection.deleteOne(filter);
+      res.send(result);
+    });
 
     // for get jwt token
     app.get("/jwt", async (req, res) => {
@@ -126,14 +148,6 @@ async function run() {
         return res.send({ accessToken: token });
       }
       res.status(403).send({ accessToken: "" });
-    });
-
-    //delete single user collection
-    app.delete("/users/:id", async (req, res) => {
-      const id = req.params.id;
-      const filter = { _id: new ObjectId(id) };
-      const result = await userCollection.deleteOne(filter);
-      res.send(result);
     });
 
     // for create admin
