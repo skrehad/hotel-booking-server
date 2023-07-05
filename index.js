@@ -87,6 +87,13 @@ async function run() {
       res.send(user);
     });
 
+    //all user collection
+    app.get("/booking", async (req, res) => {
+      const query = {};
+      const users = await bookingCollection.find(query).toArray();
+      res.send(users);
+    });
+
     // booking collection for post in the client site
     app.post("/booking", async (req, res) => {
       const user = req.body;
