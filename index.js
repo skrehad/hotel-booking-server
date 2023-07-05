@@ -41,6 +41,9 @@ async function run() {
     const hotelCollection = client
       .db("hotel-booking")
       .collection("hotelCollection");
+    const bookingCollection = client
+      .db("hotel-booking")
+      .collection("bookingCollection");
     const blogCollection = client
       .db("hotel-booking")
       .collection("blogCollection");
@@ -68,12 +71,14 @@ async function run() {
       const users = await hotelCollection.find(query).toArray();
       res.send(users);
     });
+
     // hotel collection for post in the client site
     app.post("/hotels", async (req, res) => {
       const user = req.body;
       const result = await hotelCollection.insertOne(user);
       res.send(result);
     });
+
     //for single hotel collection
     app.get("/hotels/:id", async (req, res) => {
       const id = req.params.id;
@@ -81,6 +86,14 @@ async function run() {
       const user = await hotelCollection.findOne(query);
       res.send(user);
     });
+
+    // booking collection for post in the client site
+    app.post("/booking", async (req, res) => {
+      const user = req.body;
+      const result = await bookingCollection.insertOne(user);
+      res.send(result);
+    });
+
     //delete single user collection
     app.delete("/hotels/:id", async (req, res) => {
       const id = req.params.id;
@@ -123,6 +136,7 @@ async function run() {
       const result = await userCollection.insertOne(user);
       res.send(result);
     });
+
     //for single user collection
     app.get("/users/:id", async (req, res) => {
       const id = req.params.id;
@@ -130,6 +144,7 @@ async function run() {
       const user = await userCollection.findOne(query);
       res.send(user);
     });
+
     //delete single user collection
     app.delete("/users/:id", async (req, res) => {
       const id = req.params.id;
