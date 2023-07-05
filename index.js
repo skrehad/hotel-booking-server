@@ -89,9 +89,15 @@ async function run() {
 
     //all user collection
     app.get("/booking", async (req, res) => {
-      const query = {};
-      const users = await bookingCollection.find(query).toArray();
-      res.send(users);
+      let query = {};
+      if (req.query.email) {
+        query = {
+          email: req.query.email,
+        };
+      }
+      const cursor = bookingCollection.find(query);
+      const orders = await cursor.toArray();
+      res.send(orders);
     });
 
     // booking collection for post in the client site
