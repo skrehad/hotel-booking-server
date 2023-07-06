@@ -87,6 +87,14 @@ async function run() {
       res.send(user);
     });
 
+    //delete hotel from manage hotels
+    app.delete("/hotels/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await hotelCollection.deleteOne(filter);
+      res.send(result);
+    });
+
     //all user collection
     app.get("/booking", async (req, res) => {
       let query = {};
@@ -107,11 +115,11 @@ async function run() {
       res.send(result);
     });
 
-    //delete single user collection
-    app.delete("/hotels/:id", async (req, res) => {
+    // for delete booking
+    app.delete("/booking/:id", async (req, res) => {
       const id = req.params.id;
-      const filter = { _id: new ObjectId(id) };
-      const result = await hotelCollection.deleteOne(filter);
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingCollection.deleteOne(query);
       res.send(result);
     });
 
