@@ -20,21 +20,21 @@ const client = new MongoClient(uri, {
 });
 
 // jwt token functionality
-// function verifyJWT(req, res, next) {
-//   const authHeader = req.headers.authorization;
-//   if (!authHeader) {
-//     return res.status(401).send("unauthorized access");
-//   }
-//   const token = authHeader.split(" ")[1];
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send("unauthorized access");
+  }
+  const token = authHeader.split(" ")[1];
 
-//   jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
-//     if (err) {
-//       return res.status(403).send({ message: "forbidden access" });
-//     }
-//     req.decoded = decoded;
-//     next();
-//   });
-// }
+  jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "forbidden access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
 
 async function run() {
   try {
@@ -47,23 +47,22 @@ async function run() {
     const blogCollection = client
       .db("hotel-booking")
       .collection("blogCollection");
-
     const userCollection = client
       .db("hotel-booking")
       .collection("userCollection");
 
     // verify admin for access another user to admit admin
-    // const verifyAdmin = async (req, res, next) => {
-    //   const decodedEmail = req.decoded.email;
-    //   const query = { email: decodedEmail };
-    //   console.log(decodedEmail);
-    //   const user = await userCollection.findOne(query);
+    const verifyAdmin = async (req, res, next) => {
+      const decodedEmail = req.decoded.email;
+      const query = { email: decodedEmail };
+      console.log(decodedEmail);
+      const user = await userCollection.findOne(query);
 
-    //   if (user?.role !== "admin") {
-    //     return res.status(403).send({ message: "forbidden access" });
-    //   }
-    //   next();
-    // };
+      if (user?.role !== "admin") {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      next();
+    };
 
     // hotels collection
     app.get("/hotels", async (req, res) => {
@@ -73,7 +72,7 @@ async function run() {
     });
 
     // hotel collection for post in the client site
-    app.post("/hotels", async (req, res) => {
+    app.post("/hotels", verifyJWT, verifyAdmin, async (req, res) => {
       const user = req.body;
       const result = await hotelCollection.insertOne(user);
       res.send(result);
@@ -88,7 +87,7 @@ async function run() {
     });
 
     //delete hotel from manage hotels
-    app.delete("/hotels/:id", async (req, res) => {
+    app.delete("/hotels/:id", verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const result = await hotelCollection.deleteOne(filter);
@@ -96,13 +95,13 @@ async function run() {
     });
 
     //all user collection
-    app.get("/booking", async (req, res) => {
-      let query = {};
-      if (req.query.email) {
-        query = {
-          email: req.query.email,
-        };
+    app.get("/booking", verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      const decodedEmail = req.decoded.email;
+      if (email !== decodedEmail) {
+        return res.status(403).send({ message: "forbidden access" });
       }
+      const query = { email: email };
       const cursor = bookingCollection.find(query);
       const orders = await cursor.toArray();
       res.send(orders);
@@ -131,7 +130,7 @@ async function run() {
     });
 
     // blog collection for post in the client site
-    app.post("/blog", async (req, res) => {
+    app.post("/blog", verifyJWT, verifyAdmin, async (req, res) => {
       const user = req.body;
       const result = await blogCollection.insertOne(user);
       res.send(result);
@@ -167,7 +166,7 @@ async function run() {
     });
 
     //delete single user collection
-    app.delete("/users/:id", async (req, res) => {
+    app.delete("/users/:id", verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const result = await userCollection.deleteOne(filter);
@@ -187,7 +186,7 @@ async function run() {
     });
 
     // for create admin
-    app.put("/users/admin/:id", async (req, res) => {
+    app.put("/users/admin/:id", verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const options = { upsert: true };
