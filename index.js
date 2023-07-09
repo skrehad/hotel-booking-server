@@ -154,7 +154,7 @@ async function run() {
         return res.send({ acknowledged: false });
       }
       const result = await userCollection.insertOne(user);
-      res.send(result);
+      res.send({ result, email: user.email });
     });
 
     //for single user collection
