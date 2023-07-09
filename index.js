@@ -55,7 +55,7 @@ async function run() {
     const verifyAdmin = async (req, res, next) => {
       const decodedEmail = req.decoded.email;
       const query = { email: decodedEmail };
-      console.log(decodedEmail);
+      // console.log(decodedEmail);
       const user = await userCollection.findOne(query);
 
       if (user?.role !== "admin") {
@@ -97,14 +97,14 @@ async function run() {
     //all user collection
     app.get("/booking", verifyJWT, async (req, res) => {
       const email = req.query.email;
+      // console.log(req.headers.authorization);
       const decodedEmail = req.decoded.email;
       if (email !== decodedEmail) {
         return res.status(403).send({ message: "forbidden access" });
       }
       const query = { email: email };
-      const cursor = bookingCollection.find(query);
-      const orders = await cursor.toArray();
-      res.send(orders);
+      const bookings = await bookingCollection.find(query).toArray();
+      res.send(bookings);
     });
 
     // booking collection for post in the client site
