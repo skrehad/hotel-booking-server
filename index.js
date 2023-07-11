@@ -50,6 +50,9 @@ async function run() {
     const userCollection = client
       .db("hotel-booking")
       .collection("userCollection");
+    const galleryCollection = client
+      .db("hotel-booking")
+      .collection("galleryCollection");
 
     // verify admin for access another user to admit admin
     const verifyAdmin = async (req, res, next) => {
@@ -205,6 +208,20 @@ async function run() {
       const query = { email };
       const user = await userCollection.findOne(query);
       res.send({ isAdmin: user?.role === "admin" });
+    });
+
+    // gallery collection
+    app.get("/gallery", async (req, res) => {
+      const query = {};
+      const users = await galleryCollection.find(query).toArray();
+      res.send(users);
+    });
+
+    // hotel collection for post in the client site
+    app.post("/gallery", verifyJWT, verifyAdmin, async (req, res) => {
+      const user = req.body;
+      const result = await galleryCollection.insertOne(user);
+      res.send(result);
     });
   } finally {
   }
