@@ -41,6 +41,9 @@ async function run() {
     const hotelCollection = client
       .db("hotel-booking")
       .collection("hotelCollection");
+    const offerHotelCollection = client
+      .db("hotel-booking")
+      .collection("offerHotelCollection");
     const bookingCollection = client
       .db("hotel-booking")
       .collection("bookingCollection");
@@ -222,6 +225,13 @@ async function run() {
       const user = req.body;
       const result = await galleryCollection.insertOne(user);
       res.send(result);
+    });
+
+    // offer hotels collection
+    app.get("/offerHotels", async (req, res) => {
+      const query = {};
+      const users = await offerHotelCollection.find(query).toArray();
+      res.send(users);
     });
   } finally {
   }
