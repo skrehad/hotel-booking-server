@@ -56,6 +56,9 @@ async function run() {
     const galleryCollection = client
       .db("hotel-booking")
       .collection("galleryCollection");
+    const reviewCollection = client
+      .db("hotel-booking")
+      .collection("reviewCollection");
 
     // verify admin for access another user to admit admin
     const verifyAdmin = async (req, res, next) => {
@@ -232,6 +235,20 @@ async function run() {
       const query = {};
       const users = await offerHotelCollection.find(query).toArray();
       res.send(users);
+    });
+
+    // reviews collection
+    app.get("/reviews", async (req, res) => {
+      const query = {};
+      const users = await reviewCollection.find(query).toArray();
+      res.send(users);
+    });
+
+    // review collection for post in the client site
+    app.post("/reviews", verifyJWT, verifyAdmin, async (req, res) => {
+      const user = req.body;
+      const result = await reviewCollection.insertOne(user);
+      res.send(result);
     });
   } finally {
   }
