@@ -245,7 +245,7 @@ async function run() {
     });
 
     // review collection for post in the client site
-    app.post("/reviews", verifyJWT, verifyAdmin, async (req, res) => {
+    app.post("/reviews", async (req, res) => {
       const user = req.body;
       const result = await reviewCollection.insertOne(user);
       res.send(result);
